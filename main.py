@@ -85,9 +85,9 @@ class Window(game):
         body = pymunk.Body(mass, inertia)
         body.position = self.x, self.size[self.b][0]
         shape = pymunk.Circle(body, radius, (0, 0))
-        shape.elasticity = 0.85
+        shape.elasticity = 0.8
         shape.color = pygame.Color(self.size[self.b][1])
-        shape.friction = 0.85
+        shape.friction = 0.8
         self.space.add(body, shape)
         return shape
 
