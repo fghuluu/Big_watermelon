@@ -63,8 +63,10 @@ class Window(game):
             if y < self.height / 3:
                 pygame.draw.line(self.screen, gray, (0, self.height / 10), (self.width, self.height / 10), 1)
                 if y - i.body.mass < self.height / 10 and self.click == 0:
+                    self.m = 1
                     if g.ccbox("游戏结束，当前为" + str(self.t), title='提示', choices=("重新开始", "结束游戏")):
                         dell_ball = []
+                        self.m = 0
                         self.t = 0
                         self.b = 0
                         self.big = 0
