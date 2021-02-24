@@ -1,5 +1,6 @@
 import pymunk
 import pymunk.pygame_util
+import easygui as g
 from color import *
 from random import *
 from game import *
@@ -28,6 +29,7 @@ class Window(game):
         self.t = 0
         self.x = 0
         self.b = 0
+        self.m = 0
         self.big = 0
         self.ball = []
         self.static_lines = []
@@ -41,10 +43,38 @@ class Window(game):
     def random(self):
         return randint(0, self.big)
 
+    def check(self):
+        if len(self.ball) != 0 and self.ball[-1].body.position.x == self.x:
+            text = pygame.font.SysFont("宋体", 20)
+            tips = text.render(str('Please move the mouse'), True, white)
+            self.screen.blit(tips, (5, 50))
+            self.m = 1
+        else:
+            self.m = 0
+
     def fraction(self):
         text = pygame.font.SysFont("宋体", 30)
         text_fmt = text.render(str(self.t), True, white)
         self.screen.blit(text_fmt, (5, 5))
+
+    def die(self):
+        for i in self.ball:
+            y = i.body.position.y
+            if y < self.height / 3:
+                pygame.draw.line(self.screen, gray, (0, self.height / 10), (self.width, self.height / 10), 1)
+                if y - i.body.mass < self.height / 10 and self.click == 0:
+                    if g.ccbox("游戏结束，当前为" + str(self.t), title='提示', choices=("重新开始", "结束游戏")):
+                        dell_ball = []
+                        self.t = 0
+                        self.b = 0
+                        self.big = 0
+                        for u in self.ball:
+                            dell_ball.append(u)
+                        for u in dell_ball:
+                            self.ball.remove(u)
+                            self.space.remove(u, u.body)
+                    else:
+                        self.__state = 0
 
     def add_ball(self):
         mass = self.size[self.b][0]
@@ -53,9 +83,9 @@ class Window(game):
         body = pymunk.Body(mass, inertia)
         body.position = self.x, self.size[self.b][0]
         shape = pymunk.Circle(body, radius, (0, 0))
-        shape.elasticity = 0.8
+        shape.elasticity = 0.85
         shape.color = pygame.Color(self.size[self.b][1])
-        shape.friction = 0.8
+        shape.friction = 0.85
         self.space.add(body, shape)
         return shape
 
@@ -84,7 +114,6 @@ class Window(game):
             pymunk.Segment(self.space.static_body, (0, self.height), (self.width, self.height), 0),
             pymunk.Segment(self.space.static_body, (-1, 0), (-1, self.height), 0),
             pymunk.Segment(self.space.static_body, (self.width, 0), (self.width, self.height), 0),
-            pymunk.Segment(self.space.static_body, (0, -1), (self.width, 0), 0)
         ]
         for i in static_lines:
             i.elasticity = 0.8
@@ -100,6 +129,7 @@ class Window(game):
             self.time += 1
             if self.time >= 50:
                 self.click = 0
+                self.time = 0
         for event in pygame.event.get():
             self.x = pygame.mouse.get_pos()[0]
             if self.x < 0 + self.size[self.b][0]:
@@ -110,7 +140,7 @@ class Window(game):
                 self.__state = 0
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    if self.click == 0:
+                    if self.click == 0 and self.m == 0:
                         self.click = 1
                         self.ball.append(self.add_ball())
                         self.b = self.random()
@@ -143,12 +173,14 @@ class Window(game):
     def update(self):
         while self.__state:
             self.collision()
-            self.key()
             self.screen.fill((0, 0, 0))
+            self.key()
             self.interface()
             self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
             self.space.debug_draw(self.draw_options)
+            self.check()
             self.fraction()
+            self.die()
             self.space.step(1 / 60)
             pygame.display.flip()
             self.clock.tick(60)
