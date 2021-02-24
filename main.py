@@ -129,7 +129,7 @@ class Window(game):
     def key(self):
         if self.click == 1:
             self.time += 1
-            if self.time >= 50:
+            if self.time >= 25:
                 self.click = 0
                 self.time = 0
         for event in pygame.event.get():
